@@ -1,0 +1,11 @@
+subject,body,label
+"URGENT: Your account will be suspended","Your account has been compromised and will be suspended immediately unless you verify your identity. Click here to verify: http://phishing-example.com/verify",phishing
+"Congratulations! You won $1,000,000","You are the lucky winner of our international lottery! To claim your prize, please send your personal information immediately.",phishing
+"Security Alert: Unusual Activity","We detected unusual activity on your account. Please verify immediately by clicking: http://fake-bank.org/verify",phishing
+"Update your payment information","Your payment method has expired. Please update immediately: http://scam-site.com/payment",phishing
+"Inheritance Fund Transfer","I am Prince from Nigeria with inheritance fund. Need your help to transfer $5 million. Send bank details.",phishing
+"Weekly team meeting reminder","Hi Team, reminder that our weekly meeting is tomorrow at 2 PM in conference room. Thanks, Sarah",legit
+"Order confirmation #12345","Thank you for your purchase. Order #12345 confirmed and will ship in 2-3 business days.",legit
+"Monthly newsletter","Welcome to our monthly tech newsletter covering AI, cloud computing, and cybersecurity trends.",legit
+"Project deadline reminder","Friendly reminder that project deadline is next Friday. Please submit all deliverables on time.",legit
+"Welcome to our service","Welcome! We're excited to have you. Please complete your profile and explore our features.",legit

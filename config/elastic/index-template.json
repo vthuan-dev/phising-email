@@ -1,0 +1,162 @@
+{
+  "index_patterns": ["phish-mail-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0,
+      "refresh_interval": "30s",
+      "index.lifecycle.name": "phish-mail-policy",
+      "index.lifecycle.rollover_alias": "phish-mail"
+    },
+    "mappings": {
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "timestamp": {
+          "type": "date"
+        },
+        "processed_at": {
+          "type": "date"
+        },
+        "sender": {
+          "type": "keyword",
+          "fields": {
+            "text": {
+              "type": "text",
+              "analyzer": "standard"
+            }
+          }
+        },
+        "sender_domain": {
+          "type": "keyword"
+        },
+        "sender_hash": {
+          "type": "keyword"
+        },
+        "recipients": {
+          "type": "keyword"
+        },
+        "subject": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 256
+            }
+          }
+        },
+        "subject_hash": {
+          "type": "keyword"
+        },
+        "body_excerpt": {
+          "type": "text",
+          "analyzer": "standard"
+        },
+        "urls": {
+          "type": "keyword"
+        },
+        "suspicious_keywords": {
+          "type": "integer"
+        },
+        "url_in_blacklist": {
+          "type": "boolean"
+        },
+        "ml_prediction": {
+          "type": "keyword"
+        },
+        "ml_score": {
+          "type": "float"
+        },
+        "ml_model": {
+          "type": "keyword"
+        },
+        "llm_label": {
+          "type": "keyword"
+        },
+        "llm_confidence": {
+          "type": "float"
+        },
+        "llm_explanation": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "keyword": {
+              "type": "keyword",
+              "ignore_above": 512
+            }
+          }
+        },
+        "llm_model": {
+          "type": "keyword"
+        },
+        "llm_latency_ms": {
+          "type": "long"
+        },
+        "llm_tokens_used": {
+          "type": "integer"
+        },
+        "llm_error": {
+          "type": "text"
+        },
+        "sender_ip": {
+          "type": "ip"
+        },
+        "risk_level": {
+          "type": "keyword"
+        },
+        "geoip": {
+          "properties": {
+            "location": {
+              "type": "geo_point"
+            },
+            "country_name": {
+              "type": "keyword"
+            },
+            "city_name": {
+              "type": "keyword"
+            },
+            "continent_code": {
+              "type": "keyword"
+            }
+          }
+        },
+        "headers": {
+          "type": "object",
+          "properties": {
+            "message_id": {
+              "type": "keyword"
+            },
+            "reply_to": {
+              "type": "keyword"
+            },
+            "x_originating_ip": {
+              "type": "ip"
+            }
+          }
+        },
+        "features": {
+          "type": "object",
+          "properties": {
+            "has_attachments": {
+              "type": "boolean"
+            },
+            "has_html": {
+              "type": "boolean"
+            },
+            "url_count": {
+              "type": "integer"
+            },
+            "char_count": {
+              "type": "integer"
+            },
+            "exclamation_count": {
+              "type": "integer"
+            }
+          }
+        }
+      }
+    }
+  }
+}

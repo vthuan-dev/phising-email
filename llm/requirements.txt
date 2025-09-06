@@ -1,0 +1,5 @@
+# llm/requirements.txt
+google-generativeai==0.3.2
+python-dotenv==1.0.0
+redis==5.0.1
+gradio==4.7.1

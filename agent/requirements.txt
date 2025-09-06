@@ -1,0 +1,6 @@
+# agent/requirements.txt
+imaplib2==3.6
+numpy==1.24.3
+scikit-learn==1.3.0
+python-dotenv==1.0.0
+pathlib2==2.3.7

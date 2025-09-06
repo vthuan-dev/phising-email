@@ -1,0 +1,151 @@
+# config/elastalert/rules/phish_rule.yaml
+name: Phishing Email Detection Alert
+type: any
+index: phish-mail-*
+
+# Compound alerting conditions
+filter:
+- bool:
+    should:
+      # High ML score
+      - range:
+          ml_score:
+            gte: 0.85
+      
+      # High LLM confidence
+      - range:
+          llm_confidence:
+            gte: 0.85
+      
+      # Medium score with suspicious keywords
+      - bool:
+          must:
+            - bool:
+                should:
+                  - range:
+                      ml_score:
+                        gte: 0.6
+                  - range:
+                      llm_confidence:
+                        gte: 0.6
+            - range:
+                suspicious_keywords:
+                  gte: 2
+      
+      # URL in blacklist
+      - term:
+          url_in_blacklist: true
+
+# Aggregation to prevent alert storms
+aggregation_key: 
+  - sender_domain
+  - subject_hash
+
+# Time windows
+timeframe:
+  minutes: 5
+
+# Alert throttling
+realert:
+  minutes: 30
+
+# Query key for grouping
+query_key: 
+  - sender_domain
+
+# Email alerting
+alert:
+  - "email"
+  - "slack"
+
+# Email configuration
+smtp_host: "smtp.gmail.com"
+smtp_port: 587
+smtp_ssl: false
+from_addr: "alerts@company.com"
+smtp_auth_file: "/opt/elastalert/config/smtp_auth.yaml"
+
+email:
+  - "security@company.com"
+
+# Email alert content
+alert_subject: "🚨 Phishing Email Detected: {0}"
+alert_subject_args:
+  - subject
+
+alert_text: |
+  Phishing email detected with the following details:
+  
+  📧 Email Details:
+  - From: {0}
+  - Subject: {1}
+  - Timestamp: {2}
+  - Sender Domain: {3}
+  
+  🤖 ML Analysis:
+  - ML Prediction: {4}
+  - ML Score: {5:.3f}
+  - Risk Level: {6}
+  
+  🧠 LLM Analysis:
+  - LLM Label: {7}
+  - LLM Confidence: {8:.3f}
+  - LLM Explanation: {9}
+  
+  🔍 Indicators:
+  - Suspicious Keywords: {10}
+  - URLs in Blacklist: {11}
+  - URLs Found: {12}
+  
+  📊 View in Kibana:
+  http://localhost:5601/app/discover#/?_g=(filters:!(),refreshInterval:(pause:!t,value:0),time:(from:now-1h,to:now))&_a=(columns:!(sender,subject,ml_score,llm_confidence,risk_level),filters:!(('$state':(store:appState),meta:(alias:!n,disabled:!f,index:'phish-mail-*',key:subject_hash,negate:!f,params:(query:'{13}'),type:phrase),query:(match_phrase:(subject_hash:'{13}')))),index:'phish-mail-*',interval:auto,query:(language:kuery,query:''),sort:!(!('@timestamp',desc)))
+
+alert_text_args:
+  - sender
+  - subject
+  - "@timestamp"
+  - sender_domain
+  - ml_prediction
+  - ml_score
+  - risk_level
+  - llm_label
+  - llm_confidence
+  - llm_explanation
+  - suspicious_keywords
+  - url_in_blacklist
+  - urls
+  - subject_hash
+
+# Slack alerting
+slack:
+webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+slack_channel_override: "#security-alerts"
+slack_username_override: "ElastAlert-Phishing"
+slack_emoji_override: ":warning:"
+
+slack_title: "🚨 Phishing Email Alert"
+slack_title_link: "http://localhost:5601/app/discover"
+
+slack_msg_color: "danger"
+
+# Include additional metadata
+include:
+  - sender
+  - subject
+  - ml_score
+  - llm_confidence
+  - risk_level
+  - urls
+  - suspicious_keywords
+  - "@timestamp"
+
+# Generate summary of multiple matches
+summary_table_fields:
+  - sender
+  - subject
+  - ml_score
+  - llm_confidence
+  - risk_level
+
+# Attach raw events
+attach_related: true
