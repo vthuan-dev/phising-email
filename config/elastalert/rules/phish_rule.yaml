@@ -58,15 +58,7 @@ query_key:
 alert:
   - "debug"
 
-# Email configuration
-smtp_host: "smtp.gmail.com"
-smtp_port: 587
-smtp_ssl: false
-from_addr: "alerts@company.com"
-smtp_auth_file: "/opt/elastalert/config/smtp_auth.yaml"
-
-email:
-  - "security@company.com"
+# Email alerting disabled: SMTP configuration removed to avoid dependency
 
 # Email alert content
 alert_subject: "🚨 Phishing Email Detected: {0}"

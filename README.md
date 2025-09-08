@@ -130,6 +130,21 @@ docker compose build agent api gradio_demo  # rebuild app
 
 ## 12) License
 MIT — xem `LICENSE` nếu có.
+
+## 13) Thay đổi cấu hình Telegram & Email
+
+- Thay đổi Telegram (khuyến nghị chỉ cấu hình tại `phish_telegram_rule.yaml`):
+  1. Mở `config/elastalert/rules/phish_telegram_rule.yaml`.
+  2. Sửa hai dòng:
+     - `telegram_bot_token: "<TOKEN_MOI>"`
+     - `telegram_room_id: "<CHAT_ID_MOI>"`  (luôn để dạng chuỗi, kể cả số âm `-100...`).
+  3. Khởi động lại ElastAlert để áp dụng:
+     ```bash
+     docker compose restart elastalert
+     ```
+
+Gợi ý: Không commit token/password thật vào repo. Lưu trong `.env` hoặc
+secret manager và cập nhật thủ công khi deploy.
 # Phishing Email Detection Pipeline with Google Gemini
 
 ## Overview
