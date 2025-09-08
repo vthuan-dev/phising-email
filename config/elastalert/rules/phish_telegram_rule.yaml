@@ -1,0 +1,123 @@
+# Phishing Detection Alert Rule with Telegram Notifications
+name: Phishing Email Detection - Telegram Alert
+type: frequency
+
+# Index to search
+index: phish-mail-*
+
+# Alert when we get at least 1 phishing detection
+num_events: 1
+timeframe:
+  minutes: 5
+
+# Search query for high-risk phishing emails
+filter:
+- query:
+    query_string:
+      query: >
+        (llm_label:phishing AND llm_confidence:>=0.85) OR 
+        (ml_score:>=0.85) OR 
+        (suspicious_keywords:>=2 AND (llm_confidence:>=0.6 OR ml_score:>=0.6)) OR
+        (url_in_blacklist:true)
+
+# Alert configuration for Telegram
+alert:
+- telegram
+
+# Telegram bot configuration
+# Populated to match your working bot/channel
+telegram_bot_token: "8362782336:AAG9Z0hNKyxcK9z9LOKq2Aof5kLel0XdQvo"
+telegram_room_id: "5840055926"
+
+# Alert formatting
+alert_subject: "⚠️ Phishing Email Detected!"
+alert_text: |
+  🚨 *PHISHING ALERT* 🚨
+  
+  *Timestamp:* {0}
+  *Sender:* {1}
+  *Subject:* {2}
+  
+  *Risk Analysis:*
+  • AI Confidence: {3}%
+  • AI Classification: {4}
+  • Suspicious Keywords: {5}
+  • Blacklisted URL: {6}
+  
+  *AI Explanation:*
+  {7}
+  
+  *Email Preview:*
+  {8}
+  
+  *Action Required:*
+  Please review this email immediately in the security dashboard.
+  
+  #PhishingAlert #EmailSecurity
+
+alert_text_args:
+  - timestamp
+  - sender
+  - subject
+  - llm_confidence
+  - llm_label
+  - suspicious_keywords
+  - url_in_blacklist
+  - llm_explanation
+  - body_excerpt
+
+# Include these fields in the alert
+include:
+  - timestamp
+  - sender
+  - sender_hash
+  - subject
+  - body_excerpt
+  - llm_label
+  - llm_confidence
+  - llm_explanation
+  - ml_score
+  - suspicious_keywords
+  - url_in_blacklist
+  - urls
+
+# Alert aggregation (optional)
+# Aggregate alerts by sender to avoid spam
+aggregation:
+  schedule: '*/5 * * * *'  # Run every 5 minutes
+aggregation_key: sender_hash
+
+# Alert suppression (optional)
+# Don't alert on the same sender for 30 minutes
+realert:
+  minutes: 30
+
+# Enhancement for better formatting
+generate_kibana_link: true
+kibana_url: http://localhost:5601
+use_kibana_dashboard: http://localhost:5601/app/dashboards#/view/phishing-dashboard
+
+# Custom enhancement fields
+enhancement_config:
+  - name: risk_level
+    type: field
+    field: risk_level
+  - name: timestamp_formatted
+    type: strftime
+    field: timestamp
+    format: "%Y-%m-%d %H:%M:%S"
+
+# Metrics (optional)
+metrics_aggregation:
+  minutes: 60
+metrics_key: phishing_detections
+
+# Description for documentation
+description: >
+  This rule monitors for high-confidence phishing emails detected by the 
+  Gemini AI model or ML classifier. It sends immediate alerts to Telegram 
+  when suspicious emails are detected, including those with:
+  - High AI confidence scores (>=85%)
+  - High ML scores (>=85%)
+  - Multiple suspicious keywords with moderate confidence
+  - Blacklisted URLs

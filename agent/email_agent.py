@@ -90,17 +90,21 @@ class EmailAgent:
         try:
             mail = imaplib.IMAP4_SSL(self.config.imap_host)
             mail.login(self.config.imap_user, self.config.imap_pass)
-            mail.select('inbox')
             self.logger.info(f"Connected to IMAP server: {self.config.imap_host}")
             return mail
         except Exception as e:
             self.logger.error(f"IMAP connection failed: {e}")
             raise
 
-    def fetch_unseen_emails(self, mail: imaplib.IMAP4_SSL) -> List[Dict]:
-        """Fetch unseen emails from IMAP"""
+    def fetch_unseen_from_folder(self, mail: imaplib.IMAP4_SSL, folder: str) -> List[Dict]:
+        """Fetch unseen emails from a specific IMAP folder"""
         emails = []
         try:
+            # try select the folder; readonly to avoid server-side state issues
+            status, _ = mail.select(folder, readonly=True)
+            if status != 'OK':
+                return []
+
             status, messages = mail.search(None, 'UNSEEN')
             if status == 'OK':
                 for msg_id in messages[0].split():
@@ -109,14 +113,25 @@ class EmailAgent:
                         email_body = msg_data[0][1]
                         email_message = email.message_from_bytes(email_body)
                         emails.append(self._parse_email(email_message))
-                        # Mark as seen
-                        mail.store(msg_id, '+FLAGS', '\\Seen')
-            
-            self.logger.info(f"Fetched {len(emails)} unseen emails")
+                        # Do not change flags to keep message Unread
+
+            # If nothing new, try RECENT as a fallback (provider-dependent)
+            if not emails:
+                status, messages = mail.search(None, 'RECENT')
+                if status == 'OK':
+                    for msg_id in messages[0].split():
+                        status, msg_data = mail.fetch(msg_id, '(RFC822)')
+                        if status == 'OK':
+                            email_body = msg_data[0][1]
+                            email_message = email.message_from_bytes(email_body)
+                            emails.append(self._parse_email(email_message))
+                            # Do not change flags to keep message Unread
+
+            self.logger.info(f"Folder {folder}: fetched {len(emails)} messages")
             return emails
-            
+
         except Exception as e:
-            self.logger.error(f"Error fetching emails: {e}")
+            self.logger.error(f"Error fetching emails from {folder}: {e}")
             return []
 
     def load_sample_emails(self) -> List[Dict]:
@@ -323,8 +338,27 @@ class EmailAgent:
         while True:
             try:
                 mail = self.connect_imap()
-                emails = self.fetch_unseen_emails(mail)
-                mail.close()
+                # discover folders dynamically to handle localized names (e.g. Vietnamese 'Thư rác')
+                folders_to_check = set(['INBOX'])
+                try:
+                    status, boxes = mail.list()
+                    if status == 'OK' and boxes:
+                        for raw in boxes:
+                            line = raw.decode(errors='ignore') if isinstance(raw, (bytes, bytearray)) else str(raw)
+                            # extract the mailbox name which is the last quoted token
+                            name = line.split('"')[-2] if '"' in line else line.split()[-1]
+                            if any(key in name.lower() for key in ['spam', 'junk', 'thư rác']):
+                                folders_to_check.add(name)
+                except Exception as e:
+                    self.logger.debug(f"IMAP list mailboxes failed: {e}")
+                emails = []
+                for folder in folders_to_check:
+                    emails.extend(self.fetch_unseen_from_folder(mail, folder))
+                # Some providers may not have a mailbox selected; close() in AUTH state raises error.
+                try:
+                    mail.close()
+                except Exception:
+                    pass
                 mail.logout()
                 
                 for email_data in emails:

@@ -2,6 +2,7 @@
 name: Phishing Email Detection Alert
 type: any
 index: phish-mail-*
+is_enabled: false
 
 # Compound alerting conditions
 filter:
@@ -53,10 +54,9 @@ realert:
 query_key: 
   - sender_domain
 
-# Email alerting
+# Alerting backends (disabled for this rule; use phish_telegram_rule.yaml)
 alert:
-  - "email"
-  - "slack"
+  - "debug"
 
 # Email configuration
 smtp_host: "smtp.gmail.com"
@@ -127,6 +127,8 @@ slack_title: "🚨 Phishing Email Alert"
 slack_title_link: "http://localhost:5601/app/discover"
 
 slack_msg_color: "danger"
+
+# Telegram config removed here to avoid duplication; see phish_telegram_rule.yaml
 
 # Include additional metadata
 include:

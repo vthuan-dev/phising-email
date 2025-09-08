@@ -1,6 +1,4 @@
 # docker-compose.yml
-version: '3.8'
-
 services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -59,9 +57,11 @@ services:
     image: docker.elastic.co/beats/filebeat:8.11.0
     container_name: filebeat
     user: root
+    environment:
+      - BEAT_STRICT_PERMS=false
     volumes:
       - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - log_data:/var/log:ro
+      - log_data:/var/log
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
@@ -72,9 +72,14 @@ services:
     container_name: elastalert
     volumes:
       - ./config/elastalert:/opt/elastalert/config
+      - ./config/elastalert/rules:/opt/elastalert/rules
+      - ./config/elastalert/entrypoint.sh:/opt/elastalert/entrypoint.sh
     environment:
       - ELASTICSEARCH_HOST=elasticsearch
       - ELASTICSEARCH_PORT=9200
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-8362782336:AAG9Z0hNKyxcK9z9LOKq2Aof5kLel0XdQvo}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-5840055926}
+    entrypoint: ["/bin/sh", "/opt/elastalert/entrypoint.sh"]
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -84,6 +89,7 @@ services:
       context: ./agent
       dockerfile: Dockerfile
     container_name: email_agent
+    user: root 
     volumes:
       - log_data:/var/log
     environment:

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phishing Overview Dashboard</title>
+    <style>
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: #0f172a;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      header {
+        color: #e2e8f0;
+        padding: 10px 16px;
+        border-bottom: 1px solid #1f2937;
+      }
+      .wrap {
+        position: absolute;
+        top: 50px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      .hint { color:#94a3b8; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>Phishing Overview</strong>
+      <div class="hint">Được nhúng từ Kibana (embed). Yêu cầu Kibana chạy tại http://localhost:5601 và security tắt.</div>
+    </header>
+    <div class="wrap">
+      <!-- Nếu bạn đổi host/port Kibana, chỉnh lại src bên dưới -->
+      <iframe
+        src="http://localhost:5601/app/dashboards#/view/phishing-overview?embed=true&_g=(refreshInterval:(pause:!f,value:30000),time:(from:now-24h,to:now))"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </body>
+  </html>
+
+

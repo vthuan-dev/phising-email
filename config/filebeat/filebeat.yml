@@ -14,7 +14,7 @@ filebeat.inputs:
   max_bytes: 10485760
 
 output.logstash:
-  hosts: ["logstash:5044"]
+  hosts: ["logstash:5045"]
 
 processors:
 - add_host_metadata:
@@ -22,9 +22,6 @@ processors:
 - add_docker_metadata: ~
 
 logging.level: info
-logging.to_files: true
-logging.files:
-  path: /var/log/filebeat
-  name: filebeat
-  keepfiles: 7
-  permissions: 0644
+logging.to_files: false
+
+strict.perms: false
