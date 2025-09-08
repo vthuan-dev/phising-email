@@ -145,6 +145,57 @@ MIT — xem `LICENSE` nếu có.
 
 Gợi ý: Không commit token/password thật vào repo. Lưu trong `.env` hoặc
 secret manager và cập nhật thủ công khi deploy.
+
+## 14) Hướng dẫn chạy trên Ubuntu
+
+1) Cài Docker & Compose plugin (Ubuntu 22.04+):
+```bash
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+2) Cho phép chạy Docker không cần sudo (đăng xuất/đăng nhập lại sau khi chạy):
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+3) Clone repo và tạo `.env`:
+```bash
+git clone <your-repo-url> attt
+cd attt
+cp .env.example .env  # nếu không có thì tạo .env theo README
+vi .env   # đặt TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, GEMINI_API_KEY (nếu dùng)
+```
+
+4) Chạy dịch vụ:
+```bash
+docker compose up -d
+docker compose ps
+```
+
+5) Kiểm tra nhanh và tạo dữ liệu mẫu:
+```bash
+docker compose logs -f --tail 100 elasticsearch logstash filebeat elastalert | cat
+docker compose exec email_agent python scripts/generate_sample_logs.py --num-events 50 --output /var/log/email_events.log
+```
+
+6) Truy cập:
+- Kibana: http://<IP_UBUNTU>:5601
+- Elasticsearch: http://<IP_UBUNTU>:9200
+
+7) Sự cố phổ biến trên Ubuntu:
+- "permission denied" khi Filebeat đọc `/var/log`: đã mount `log_data` volume sẵn, không cần sudo; nếu sửa mount, đảm bảo quyền đọc/ghi cho user trong container.
+- RAM thiếu cho Elasticsearch: tăng tài nguyên host hoặc chỉnh `ES_JAVA_OPTS` trong `docker-compose.yml` (ví dụ `-Xms512m -Xmx512m`).
+- Telegram không nhận: xác nhận đã `/start` với bot, `CHAT_ID` là chuỗi (kể cả số âm), restart ElastAlert: `docker compose restart elastalert`.
 # Phishing Email Detection Pipeline with Google Gemini
 
 ## Overview
