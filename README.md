@@ -64,11 +64,11 @@ Kibana → Stack Management → Saved Objects → Import → chọn `config/kiba
 ## 7) Tạo dữ liệu mẫu
 Sinh 100 sự kiện email để pipeline hoạt động:
 ```bash
-docker compose exec email_agent python scripts/generate_sample_logs.py --num-events 100 --output /var/log/email_events.log
+docker compose exec agent python /app/generate_sample_logs.py --num-events 50 --output /var/log/email_events.log
 ```
 Hoặc tạo 1 sự kiện phishing ngay lập tức (tránh gộp bằng subject mới):
 ```bash
-docker compose exec email_agent python - <<'PY'
+docker compose exec agent python - <<'PY'
 import json, datetime
 e = {
   "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
@@ -185,7 +185,7 @@ docker compose ps
 5) Kiểm tra nhanh và tạo dữ liệu mẫu:
 ```bash
 docker compose logs -f --tail 100 elasticsearch logstash filebeat elastalert | cat
-docker compose exec email_agent python scripts/generate_sample_logs.py --num-events 50 --output /var/log/email_events.log
+docker compose exec agent python scripts/generate_sample_logs.py --num-events 50 --output /var/log/email_events.log
 ```
 
 6) Truy cập:
