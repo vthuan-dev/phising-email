@@ -8,11 +8,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies
-COPY requirements.txt .
+COPY agent/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY agent/ .
+
+# Copy generate_sample_logs.py from scripts directory
+COPY scripts/generate_sample_logs.py /app/
 
 # Create log directory
 RUN mkdir -p /var/log

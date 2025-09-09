@@ -86,8 +86,8 @@ services:
 
   agent:
     build:
-      context: ./agent
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: agent/Dockerfile
     container_name: email_agent
     user: root 
     volumes:
