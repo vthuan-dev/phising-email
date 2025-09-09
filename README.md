@@ -175,7 +175,75 @@ print('API Key valid:', client.test_connection())
 "
 ```
 
-## 14) Thay đổi cấu hình Telegram & Email
+## 14) Thay đổi cấu hình Target Mail
+
+### Cách 1: Thay đổi qua file .env (Khuyến nghị)
+1. Mở file `.env` ở thư mục gốc project
+2. Sửa các dòng sau:
+   ```bash
+   # IMAP Email Configuration
+   IMAP_HOST=imap.gmail.com
+   IMAP_USER=your_email@gmail.com
+   IMAP_PASS=your_app_password
+   IMAP_PORT=993
+   IMAP_SSL=true
+   
+   # Email Processing Settings
+   EMAIL_CHECK_INTERVAL=60  # seconds
+   MAX_EMAILS_PER_BATCH=10
+   ```
+3. Khởi động lại container agent:
+   ```bash
+   docker compose restart agent
+   ```
+
+### Cách 2: Thay đổi trực tiếp trong code
+1. Mở file `agent/config.py`
+2. Sửa các biến:
+   ```python
+   IMAP_HOST = "imap.gmail.com"
+   IMAP_USER = "your_email@gmail.com"
+   IMAP_PASS = "your_app_password"
+   IMAP_PORT = 993
+   IMAP_SSL = True
+   ```
+3. Rebuild và restart:
+   ```bash
+   docker compose build agent
+   docker compose up -d agent
+   ```
+
+### Cấu hình Gmail App Password
+1. Truy cập: https://myaccount.google.com/security
+2. Bật **2-Step Verification**
+3. Tạo **App Password** cho ứng dụng
+4. Copy password và paste vào `.env` (IMAP_PASS)
+
+### Cấu hình Outlook/Hotmail
+```bash
+IMAP_HOST=outlook.office365.com
+IMAP_PORT=993
+IMAP_SSL=true
+```
+
+### Cấu hình Yahoo Mail
+```bash
+IMAP_HOST=imap.mail.yahoo.com
+IMAP_PORT=993
+IMAP_SSL=true
+```
+
+### Kiểm tra kết nối IMAP
+```bash
+# Test IMAP connection
+docker compose exec agent python -c "
+from email_agent import EmailAgent
+agent = EmailAgent()
+print('IMAP Connection:', agent.test_imap_connection())
+"
+```
+
+## 15) Thay đổi cấu hình Telegram & Email
 
 - Thay đổi Telegram (khuyến nghị chỉ cấu hình tại `phish_telegram_rule.yaml`):
   1. Mở `config/elastalert/rules/phish_telegram_rule.yaml`.
@@ -190,7 +258,7 @@ print('API Key valid:', client.test_connection())
 Gợi ý: Không commit token/password thật vào repo. Lưu trong `.env` hoặc
 secret manager và cập nhật thủ công khi deploy.
 
-## 15) Hướng dẫn chạy trên Ubuntu
+## 16) Hướng dẫn chạy trên Ubuntu
 
 1) Cài Docker & Compose plugin (Ubuntu 22.04+):
 ```bash
