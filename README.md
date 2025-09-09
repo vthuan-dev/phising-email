@@ -131,7 +131,51 @@ docker compose build agent api gradio_demo  # rebuild app
 ## 12) License
 MIT — xem `LICENSE` nếu có.
 
-## 13) Thay đổi cấu hình Telegram & Email
+## 13) Thay đổi cấu hình API Gemini
+
+### Cách 1: Thay đổi qua file .env (Khuyến nghị)
+1. Mở file `.env` ở thư mục gốc project
+2. Sửa các dòng sau:
+   ```bash
+   # Google Gemini API
+   GEMINI_API_KEY=your_new_gemini_api_key_here
+   GEMINI_MODEL=gemini-1.5-flash  # hoặc gemini-1.5-pro
+   ```
+3. Khởi động lại container agent:
+   ```bash
+   docker compose restart agent
+   ```
+
+### Cách 2: Thay đổi trực tiếp trong code
+1. Mở file `agent/config.py`
+2. Sửa các biến:
+   ```python
+   GEMINI_API_KEY = "your_new_api_key"
+   GEMINI_MODEL = "gemini-1.5-flash"
+   ```
+3. Rebuild và restart:
+   ```bash
+   docker compose build agent
+   docker compose up -d agent
+   ```
+
+### Lấy API Key Gemini
+1. Truy cập: https://makersuite.google.com/app/apikey
+2. Đăng nhập bằng Google account
+3. Tạo API key mới
+4. Copy key và paste vào `.env`
+
+### Kiểm tra API hoạt động
+```bash
+# Test API key
+docker compose exec agent python -c "
+from client import GeminiClient
+client = GeminiClient()
+print('API Key valid:', client.test_connection())
+"
+```
+
+## 14) Thay đổi cấu hình Telegram & Email
 
 - Thay đổi Telegram (khuyến nghị chỉ cấu hình tại `phish_telegram_rule.yaml`):
   1. Mở `config/elastalert/rules/phish_telegram_rule.yaml`.
@@ -146,7 +190,7 @@ MIT — xem `LICENSE` nếu có.
 Gợi ý: Không commit token/password thật vào repo. Lưu trong `.env` hoặc
 secret manager và cập nhật thủ công khi deploy.
 
-## 14) Hướng dẫn chạy trên Ubuntu
+## 15) Hướng dẫn chạy trên Ubuntu
 
 1) Cài Docker & Compose plugin (Ubuntu 22.04+):
 ```bash
