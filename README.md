@@ -229,7 +229,7 @@ docker compose ps
 5) Kiểm tra nhanh và tạo dữ liệu mẫu:
 ```bash
 docker compose logs -f --tail 100 elasticsearch logstash filebeat elastalert | cat
-docker compose exec agent python scripts/generate_sample_logs.py --num-events 50 --output /var/log/email_events.log
+docker compose exec agent python /app/generate_sample_logs.py --num-events 50 --output /var/log/email_events.log
 ```
 
 6) Truy cập:
