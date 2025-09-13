@@ -1,12 +1,12 @@
 # agent/config.py
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 @dataclass
 class Config:
     # Processing mode
-    mode: str = "llm"  # llm (using Gemini API) or fallback (rule-based)
+    mode: str = "fallback"  # llm (using Gemini API) or fallback (rule-based)
     
     # Paths
     ml_artifacts_path: str = "/app/ml_artifacts"
@@ -33,11 +33,11 @@ class Config:
     agent_poll_interval: int = 60  # seconds
     
     # URL Blacklist
-    url_blacklist: list = [
+    url_blacklist: list = field(default_factory=lambda: [
         "secure-banking.vn-verify.com",
         "vn-verify.com",
         "secure-banking"
-    ]
+    ])
     
     def __post_init__(self):
         # Load from environment variables
