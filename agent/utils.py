@@ -21,7 +21,10 @@ BLACKLIST_DOMAINS = [
     'phishing-example.com',
     'malicious-site.net', 
     'fake-bank.org',
-    'scam-site.com'
+    'scam-site.com',
+    'secure-banking.vn-verify.com',
+    'vn-verify.com',
+    'secure-banking'
 ]
 
 def setup_logging(level: str = "INFO") -> logging.Logger:

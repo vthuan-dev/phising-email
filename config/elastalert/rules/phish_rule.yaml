@@ -1,5 +1,5 @@
 # config/elastalert/rules/phish_rule.yaml
-name: Phishing Email Detection Alert
+name: Phishing Email Detection Debug Alert
 type: any
 index: phish-mail-*
 is_enabled: false

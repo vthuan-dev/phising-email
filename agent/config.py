@@ -6,7 +6,7 @@ from typing import Optional
 @dataclass
 class Config:
     # Processing mode
-    mode: str = "llm"  # llm only (using Gemini API)
+    mode: str = "llm"  # llm (using Gemini API) or fallback (rule-based)
     
     # Paths
     ml_artifacts_path: str = "/app/ml_artifacts"
@@ -32,6 +32,13 @@ class Config:
     # Operational Settings
     agent_poll_interval: int = 60  # seconds
     
+    # URL Blacklist
+    url_blacklist: list = [
+        "secure-banking.vn-verify.com",
+        "vn-verify.com",
+        "secure-banking"
+    ]
+    
     def __post_init__(self):
         # Load from environment variables
         self.mode = os.getenv("MODE", self.mode)
@@ -55,10 +62,12 @@ class Config:
         
         # Validation
         if self.mode == 'llm' and not self.gemini_api_key:
-            raise ValueError("GEMINI_API_KEY required for LLM mode")
+            # Chuyển sang chế độ không yêu cầu API key thay vì báo lỗi
+            self.mode = 'fallback'
+            print("WARNING: No GEMINI_API_KEY found or quota exceeded, switching to fallback mode")
         
-        if self.mode not in ['llm']:
-            raise ValueError(f"Invalid mode: {self.mode} (only 'llm' supported)")
+        if self.mode not in ['llm', 'fallback']:
+            raise ValueError(f"Invalid mode: {self.mode} (only 'llm' and 'fallback' supported)")
             
         if self.gemini_model not in ['gemini-1.5-flash', 'gemini-1.5-pro']:
             raise ValueError(f"Invalid Gemini model: {self.gemini_model}")

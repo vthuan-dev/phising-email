@@ -1,33 +1,16 @@
-# 🚀 Hệ thống phát hiện Email Phishing với AI Gemini
+# 🚀 Hướng dẫn bắt đầu - Hệ thống phát hiện Email Phishing
 
 ## 📋 Tổng quan
 
-Hệ thống tự động phát hiện email lừa đảo (phishing) sử dụng AI Google Gemini, tích hợp ELK Stack để lưu trữ, hiển thị dữ liệu và gửi cảnh báo qua Telegram.
+Hệ thống này giúp bạn tự động phát hiện email lừa đảo (phishing) và gửi cảnh báo qua Telegram. Hệ thống sử dụng AI Google Gemini để phân tích email và ELK Stack để lưu trữ, hiển thị dữ liệu.
 
-### 🎯 Luồng hoạt động
+## 🎯 Luồng hoạt động
+
 ```
 Email → Agent (AI phân tích) → Elasticsearch → Kibana (Dashboard)
                                     ↓
                               ElastAlert → Telegram (Cảnh báo)
 ```
-
-### ✨ Tính năng chính
-- **AI Gemini**: Phát hiện phishing với độ chính xác cao
-- **Hỗ trợ tiếng Việt**: Giải thích và cảnh báo bằng tiếng Việt
-- **Real-time**: Xử lý email thời gian thực qua IMAP
-- **Dashboard**: Kibana với biểu đồ và thống kê chi tiết
-- **Cảnh báo Telegram**: Thông báo ngay lập tức khi phát hiện phishing
-- **Bảo mật**: Ẩn danh thông tin cá nhân (PII)
-
-## 🏗️ Kiến trúc hệ thống
-- `agent/`: Tác tử xử lý email (LLM/ML), ghi sự kiện JSON vào `/var/log/email_events.log`.
-- `api/`: API phục vụ chấm điểm (tùy chọn).
-- `llm/`: Demo giao diện Gradio (tùy chọn).
-- `ml/`: Train/infer mô hình truyền thống (tùy chọn).
-- `config/filebeat/filebeat.yml`: Thu thập log JSON.
-- `config/logstash/pipeline.conf`: Parse/enrich và index vào `phish-mail-*`.
-- `config/elastalert/`: Cấu hình ElastAlert2 + rule Telegram.
-- `config/kibana/saved_objects.ndjson`: Dashboard/Discover mẫu.
 
 ## ⚡ Cài đặt nhanh (5 phút)
 
@@ -304,192 +287,19 @@ docker compose exec elasticsearch curl -s "localhost:9200/phish-mail-*/_search" 
 - **Email:** Cấu hình SMTP trong ElastAlert
 - **Webhook:** Gửi dữ liệu đến hệ thống SIEM
 
----
+## 📚 Tài liệu tham khảo
 
-## 📚 Tài liệu chi tiết
+- [README.md](../README.md) - Tài liệu chính
+- [docs/runbook.md](runbook.md) - Hướng dẫn troubleshooting
+- [SECURITY.md](../SECURITY.md) - Bảo mật và quyền riêng tư
 
-### Cấu hình API Gemini
+## 🆘 Hỗ trợ
 
-**Cách 1: Thay đổi qua file .env (Khuyến nghị)**
-1. Mở file `.env` ở thư mục gốc project
-2. Sửa các dòng sau:
-   ```bash
-   # Google Gemini API
-   GEMINI_API_KEY=your_new_gemini_api_key_here
-   GEMINI_MODEL=gemini-1.5-flash  # hoặc gemini-1.5-pro
-   ```
-3. Khởi động lại container agent:
-   ```bash
-   docker compose restart agent
-   ```
+Nếu gặp vấn đề:
 
-**Cách 2: Thay đổi trực tiếp trong code**
-1. Mở file `agent/config.py`
-2. Sửa các biến:
-   ```python
-   GEMINI_API_KEY = "your_new_api_key"
-   GEMINI_MODEL = "gemini-1.5-flash"
-   ```
-3. Rebuild và restart:
-   ```bash
-   docker compose build agent
-   docker compose up -d agent
-   ```
-
-**Lấy API Key Gemini**
-1. Truy cập: https://makersuite.google.com/app/apikey
-2. Đăng nhập bằng Google account
-3. Tạo API key mới
-4. Copy key và paste vào `.env`
-
-**Kiểm tra API hoạt động**
-```bash
-# Test API key
-docker compose exec agent python -c "
-from client import GeminiClient
-client = GeminiClient()
-print('API Key valid:', client.test_connection())
-"
-```
-
-### Cấu hình Email IMAP
-
-**Cách 1: Thay đổi qua file .env (Khuyến nghị)**
-1. Mở file `.env` ở thư mục gốc project
-2. Sửa các dòng sau:
-   ```bash
-   # IMAP Email Configuration
-   IMAP_HOST=imap.gmail.com
-   IMAP_USER=your_email@gmail.com
-   IMAP_PASS=your_app_password
-   IMAP_PORT=993
-   IMAP_SSL=true
-   
-   # Email Processing Settings
-   EMAIL_CHECK_INTERVAL=60  # seconds
-   MAX_EMAILS_PER_BATCH=10
-   ```
-3. Khởi động lại container agent:
-   ```bash
-   docker compose restart agent
-   ```
-
-**Cấu hình Gmail App Password**
-1. Truy cập: https://myaccount.google.com/security
-2. Bật **2-Step Verification**
-3. Tạo **App Password** cho ứng dụng
-4. Copy password và paste vào `.env` (IMAP_PASS)
-
-**Cấu hình Outlook/Hotmail**
-```bash
-IMAP_HOST=outlook.office365.com
-IMAP_PORT=993
-IMAP_SSL=true
-```
-
-**Cấu hình Yahoo Mail**
-```bash
-IMAP_HOST=imap.mail.yahoo.com
-IMAP_PORT=993
-IMAP_SSL=true
-```
-
-**Kiểm tra kết nối IMAP**
-```bash
-# Test IMAP connection
-docker compose exec agent python -c "
-from email_agent import EmailAgent
-agent = EmailAgent()
-print('IMAP Connection:', agent.test_imap_connection())
-"
-```
-
-### Cấu hình Telegram
-
-**Thay đổi Telegram (khuyến nghị chỉ cấu hình tại `phish_telegram_rule.yaml`):**
-1. Mở `config/elastalert/rules/phish_telegram_rule.yaml`.
-2. Sửa hai dòng:
-   - `telegram_bot_token: "<TOKEN_MOI>"`
-   - `telegram_room_id: "<CHAT_ID_MOI>"`  (luôn để dạng chuỗi, kể cả số âm `-100...`).
-3. Khởi động lại ElastAlert để áp dụng:
-   ```bash
-   docker compose restart elastalert
-   ```
-
-**Gợi ý:** Không commit token/password thật vào repo. Lưu trong `.env` hoặc secret manager và cập nhật thủ công khi deploy.
-
-### Hướng dẫn chạy trên Ubuntu
-
-**1) Cài Docker & Compose plugin (Ubuntu 22.04+):**
-```bash
-sudo apt update
-sudo apt install -y ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-**2) Cho phép chạy Docker không cần sudo (đăng xuất/đăng nhập lại sau khi chạy):**
-```bash
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-**3) Clone repo và tạo `.env`:**
-```bash
-git clone <your-repo-url> attt
-cd attt
-cp .env.example .env  # nếu không có thì tạo .env theo README
-vi .env   # đặt TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, GEMINI_API_KEY (nếu dùng)
-```
-
-**4) Chạy dịch vụ:**
-```bash
-docker compose up -d
-docker compose ps
-```
-
-**5) Kiểm tra nhanh và tạo dữ liệu mẫu:**
-```bash
-docker compose logs -f --tail 100 elasticsearch logstash filebeat elastalert | cat
-docker compose exec agent python /app/generate_sample_logs.py --num-events 50 --output /var/log/email_events.log
-```
-
-**6) Truy cập:**
-- Kibana: http://<IP_UBUNTU>:5601
-- Elasticsearch: http://<IP_UBUNTU>:9200
-
-**7) Sự cố phổ biến trên Ubuntu:**
-- "permission denied" khi Filebeat đọc `/var/log`: đã mount `log_data` volume sẵn, không cần sudo; nếu sửa mount, đảm bảo quyền đọc/ghi cho user trong container.
-- RAM thiếu cho Elasticsearch: tăng tài nguyên host hoặc chỉnh `ES_JAVA_OPTS` trong `docker-compose.yml` (ví dụ `-Xms512m -Xmx512m`).
-- Telegram không nhận: xác nhận đã `/start` với bot, `CHAT_ID` là chuỗi (kể cả số âm), restart ElastAlert: `docker compose restart elastalert`.
-
-## 🛠️ Lệnh hữu ích
-
-```bash
-# Quản lý dịch vụ
-docker compose down            # dừng
-docker compose down -v         # dừng + xoá dữ liệu
-docker compose build agent api gradio_demo  # rebuild app
-
-# Xem log
-docker compose logs -f --tail 100 filebeat
-docker compose logs -f --tail 100 logstash
-docker compose logs -f --tail 100 elastalert
-
-# Kiểm tra trạng thái
-docker compose ps
-docker compose exec elasticsearch curl -s "localhost:9200/_cluster/health" | jq
-```
-
-## 📄 License
-
-MIT License - xem `LICENSE` nếu có.
+1. Kiểm tra log: `docker compose logs -f`
+2. Xem troubleshooting guide: `docs/runbook.md`
+3. Tạo issue trên GitHub với log chi tiết
 
 ---
 

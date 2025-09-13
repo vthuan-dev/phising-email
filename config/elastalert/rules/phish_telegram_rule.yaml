@@ -1,5 +1,5 @@
-# Phishing Detection Alert Rule with Telegram Notifications
-name: Phishing Email Detection - Telegram Alert
+﻿# Phishing Detection Alert Rule with Telegram Notifications
+name: Phishing Email Detection Alert
 type: frequency
 
 # Index to search
@@ -12,51 +12,73 @@ timeframe:
 
 # Search query for high-risk phishing emails
 filter:
-- query:
-    query_string:
-      query: >
-        (llm_label:phishing AND llm_confidence:>=0.85) OR 
-        (ml_score:>=0.85) OR 
-        (suspicious_keywords:>=2 AND (llm_confidence:>=0.6 OR ml_score:>=0.6)) OR
-        (url_in_blacklist:true)
+- bool:
+    should:
+      - range:
+          llm_confidence:
+            gte: 0.85
+      - range:
+          ml_score:
+            gte: 0.85
+      - bool:
+          must:
+            - range:
+                suspicious_keywords:
+                  gte: 2
+            - bool:
+                should:
+                  - range:
+                      llm_confidence:
+                        gte: 0.6
+                  - range:
+                      ml_score:
+                        gte: 0.6
+      - term:
+          url_in_blacklist: true
+
+# URL blacklist configuration
+blacklist_urls:
+  - "secure-banking.vn-verify.com"
+  - "vn-verify.com"
+  - "secure-banking"
 
 # Alert configuration for Telegram
 alert:
 - telegram
 
 # Telegram bot configuration
-# Populated to match your working bot/channel
-telegram_bot_token: "8362782336:AAG9Z0hNKyxcK9z9LOKq2Aof5kLel0XdQvo"
+telegram_bot_token: "8346221080:AAGBNYDXHJ5tS_3qGfry_NO6efklFlLpNTY"
 telegram_room_id: "5840055926"
 
 # Alert formatting
-alert_subject: "⚠️ Phishing Email Detected!"
+alert_subject: "🚨 CẢNH BÁO EMAIL LỪA ĐẢO!"
 alert_text: |
-  🚨 *PHISHING ALERT* 🚨
+  🚨 *PHÁT HIỆN EMAIL LỪA ĐẢO* 🚨
   
-  *Timestamp:* {0}
-  *Sender:* {1}
-  *Subject:* {2}
+  📧 *THÔNG TIN EMAIL:*
+  • Thời gian: {0}
+  • Người gửi: {1}
+  • Tiêu đề: {2}
   
-  *Risk Analysis:*
-  • AI Confidence: {3}%
-  • AI Classification: {4}
-  • Suspicious Keywords: {5}
-  • Blacklisted URL: {6}
+  ⚠️ *PHÂN TÍCH RỦI RO:*
+  • Độ tin cậy AI: {3}%
+  • Phân loại: {4}
+  • Từ khóa đáng ngờ: {5}
+  • URL trong danh sách đen: {6}
   
-  *AI Explanation:*
+  🤖 *GIẢI THÍCH CỦA AI:*
   {7}
   
-  *Email Preview:*
+  📄 *NỘI DUNG EMAIL:*
   {8}
   
-  *Action Required:*
-  Please review this email immediately in the security dashboard.
+  ⚡ *HÀNH ĐỘNG CẦN THIẾT:*
+  Vui lòng kiểm tra email này ngay lập tức trong bảng điều khiển bảo mật.
   
-  #PhishingAlert #EmailSecurity
+  #CảnhBáoLừaĐảo #BảoMậtEmail
 
 alert_text_args:
-  - timestamp
+  - "@timestamp"
   - sender
   - subject
   - llm_confidence
@@ -68,7 +90,7 @@ alert_text_args:
 
 # Include these fields in the alert
 include:
-  - timestamp
+  - "@timestamp"
   - sender
   - sender_hash
   - subject
@@ -81,12 +103,6 @@ include:
   - url_in_blacklist
   - urls
 
-# Alert aggregation (optional)
-# Aggregate alerts by sender to avoid spam
-aggregation:
-  schedule: '*/5 * * * *'  # Run every 5 minutes
-aggregation_key: sender_hash
-
 # Alert suppression (optional)
 # Don't alert on the same sender for 30 minutes
 realert:
@@ -96,21 +112,6 @@ realert:
 generate_kibana_link: true
 kibana_url: http://localhost:5601
 use_kibana_dashboard: http://localhost:5601/app/dashboards#/view/phishing-dashboard
-
-# Custom enhancement fields
-enhancement_config:
-  - name: risk_level
-    type: field
-    field: risk_level
-  - name: timestamp_formatted
-    type: strftime
-    field: timestamp
-    format: "%Y-%m-%d %H:%M:%S"
-
-# Metrics (optional)
-metrics_aggregation:
-  minutes: 60
-metrics_key: phishing_detections
 
 # Description for documentation
 description: >
